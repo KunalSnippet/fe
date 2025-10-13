@@ -1,0 +1,253 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TeaTok Design System - Dark-first approach with vibrant gradients and neon accents */
+
+@layer base {
+  :root {
+    /* Light mode (secondary) */
+    --background: 220 15% 97%;
+    --foreground: 225 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 225 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 25% 15%;
+
+    --primary: 270 60% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 225 25% 15%;
+
+    --muted: 220 15% 92%;
+    --muted-foreground: 225 15% 45%;
+
+    --accent: 195 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 270 60% 55%;
+
+    --radius: 0.75rem;
+
+    /* TeaTok Brand Colors */
+    --tea-purple: 270 75% 60%;
+    --tea-pink: 330 75% 65%;
+    --tea-blue: 200 85% 60%;
+    --tea-lime: 75 80% 55%;
+    --tea-orange: 25 85% 65%;
+    --tea-coral: 15 85% 70%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--tea-purple)), hsl(var(--tea-pink)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--tea-blue)), hsl(var(--tea-lime)));
+    --gradient-warm: linear-gradient(135deg, hsl(var(--tea-orange)), hsl(var(--tea-coral)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--tea-purple)) 0%, hsl(var(--tea-blue)) 50%, hsl(var(--tea-pink)) 100%);
+
+    /* Shadows */
+    --shadow-glow: 0 0 30px hsl(var(--tea-purple) / 0.3);
+    --shadow-neon: 0 0 20px hsl(var(--tea-lime) / 0.4);
+    --shadow-soft: 0 4px 20px hsl(225 25% 15% / 0.1);
+
+    /* Animation */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .dark {
+    /* Dark mode (primary) - TeaTok's main theme */
+    --background: 225 30% 8%;
+    --foreground: 210 40% 95%;
+
+    --card: 225 25% 12%;
+    --card-foreground: 210 40% 95%;
+
+    --popover: 225 25% 12%;
+    --popover-foreground: 210 40% 95%;
+
+    --primary: 270 75% 65%;
+    --primary-foreground: 225 30% 8%;
+
+    --secondary: 225 20% 15%;
+    --secondary-foreground: 210 40% 95%;
+
+    --muted: 225 20% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 195 85% 65%;
+    --accent-foreground: 225 30% 8%;
+
+    --destructive: 0 80% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 225 20% 18%;
+    --input: 225 20% 18%;
+    --ring: 270 75% 65%;
+
+    /* Enhanced gradients for dark mode */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--tea-purple)), hsl(var(--tea-pink)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--tea-blue)), hsl(var(--tea-lime)));
+    --gradient-warm: linear-gradient(135deg, hsl(var(--tea-orange)), hsl(var(--tea-coral)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--tea-purple)) 0%, hsl(var(--tea-blue)) 50%, hsl(var(--tea-pink)) 100%);
+
+    /* Enhanced shadows for dark mode */
+    --shadow-glow: 0 0 40px hsl(var(--tea-purple) / 0.4);
+    --shadow-neon: 0 0 25px hsl(var(--tea-lime) / 0.5);
+    --shadow-soft: 0 8px 25px hsl(225 30% 5% / 0.6);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+}
+
+@layer components {
+  /* TeaTok Custom Components */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-neon {
+    box-shadow: var(--shadow-neon);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  /* Custom animations */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 1s ease-in-out;
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-smooth hover:translate-y-[-2px] hover:shadow-soft;
+  }
+
+  .hover-glow {
+    @apply transition-smooth hover:shadow-glow;
+  }
+
+  .hover-scale {
+    @apply transition-smooth hover:scale-105;
+  }
+
+  /* Tea-themed components */
+  .spill-button {
+    @apply gradient-primary text-primary-foreground font-semibold px-6 py-3 rounded-full shadow-glow hover-lift hover-glow transition-smooth;
+  }
+
+  .tea-card {
+    @apply bg-card border border-border rounded-xl p-4 shadow-soft hover-lift transition-smooth;
+  }
+
+  .neon-border {
+    @apply border-2 border-accent shadow-neon;
+  }
+}
+
+@layer utilities {
+  /* Custom keyframes */
+  @keyframes float {
+    0%, 100% { 
+      transform: translateY(0px); 
+    }
+    50% { 
+      transform: translateY(-10px); 
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: var(--shadow-glow); 
+    }
+    50% { 
+      box-shadow: var(--shadow-neon); 
+    }
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% { 
+      transform: translateY(0); 
+    }
+    50% { 
+      transform: translateY(-5px); 
+    }
+  }
+
+  @keyframes fade-in {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes slide-in-right {
+    from { 
+      opacity: 0; 
+      transform: translateX(30px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.5s ease-out;
+  }
+}
