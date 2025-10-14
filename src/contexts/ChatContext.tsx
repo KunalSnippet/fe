@@ -50,7 +50,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children, userId }) 
       }
       // In production without VITE_API_URL, fallback to deployed backend used by REST
       if ((import.meta as any).env?.PROD) {
-        return 'https://bwp-back-1.onrender.com';
+        return 'https://backend-chat-nep0.onrender.com ';
       }
       // Local development
       return 'http://localhost:5000';
@@ -193,3 +193,4 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children, userId }) 
     </ChatContext.Provider>
   );
 };
+
