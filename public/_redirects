@@ -1,8 +1,0 @@
-# SPA fallback for all routes
-/*    /index.html   200
-
-# API routes should not be redirected
-/api/*  200
-
-# Static assets
-/assets/*  200
