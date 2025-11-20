@@ -44,6 +44,8 @@ export default function RoomDetail() {
         }
       } catch (error) {
         console.error('Error parsing user data:', error)
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('user')
       }
     }
   }, [])
@@ -109,7 +111,7 @@ export default function RoomDetail() {
     try {
       if (currentReaction === reactionType) {
         // Remove reaction
-        await removeReaction(postId, currentUser.id, reactionType)
+        await removeReaction(postId, reactionType)
         setUserReactions(prev => {
           const newReactions = { ...prev }
           delete newReactions[postId]
@@ -118,9 +120,9 @@ export default function RoomDetail() {
       } else {
         // Add new reaction (remove old one if exists)
         if (currentReaction) {
-          await removeReaction(postId, currentUser.id, currentReaction as any)
+          await removeReaction(postId, currentReaction as any)
         }
-        await addReaction(postId, currentUser.id, reactionType)
+        await addReaction(postId, reactionType)
         setUserReactions(prev => ({
           ...prev,
           [postId]: reactionType
@@ -153,7 +155,7 @@ export default function RoomDetail() {
     if (!currentUser) return
 
     try {
-      await apiDeletePost(postId, currentUser.id)
+      await apiDeletePost(postId)
       setPosts(prev => prev.filter(post => post.id !== postId))
       toast({
         title: "Success",

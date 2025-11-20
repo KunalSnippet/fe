@@ -75,6 +75,11 @@ export default function Auth() {
       if (user && (user as any).id) {
         localStorage.setItem('userId', (user as any).id)
       }
+      if (user && (user as any).token) {
+        localStorage.setItem('authToken', (user as any).token)
+      } else {
+        localStorage.removeItem('authToken')
+      }
       
       // Check if there's a redirect path stored
       const redirectPath = localStorage.getItem('redirectAfterLogin')

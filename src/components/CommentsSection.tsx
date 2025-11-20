@@ -55,7 +55,6 @@ export function CommentsSection({ postId, currentUser, isOpen, onToggle }: Comme
       setSubmitting(true)
       const comment = await createComment({
         postId,
-        authorId: currentUser.id,
         content: newComment.trim()
       })
       
@@ -85,7 +84,6 @@ export function CommentsSection({ postId, currentUser, isOpen, onToggle }: Comme
       setSubmitting(true)
       const reply = await createComment({
         postId,
-        authorId: currentUser.id,
         content: replyText.trim(),
         parentCommentId
       })
@@ -120,7 +118,7 @@ export function CommentsSection({ postId, currentUser, isOpen, onToggle }: Comme
     if (!currentUser) return
 
     try {
-      await deleteComment(commentId, currentUser.id)
+      await deleteComment(commentId)
       setComments(prev => prev.filter(comment => comment.id !== commentId))
       
       toast({

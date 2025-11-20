@@ -66,6 +66,39 @@ console.log('🔧 [API] Environment VITE_API_URL:', import.meta.env.VITE_API_URL
 console.log('🔧 [API] Environment PROD:', import.meta.env.PROD)
 console.log('🔧 [API] Resolved API_BASE:', API_BASE)
 
+const isBrowser = typeof window !== 'undefined'
+
+const getStoredUser = (): ApiUser | null => {
+  if (!isBrowser) return null
+  const raw = window.localStorage.getItem('user')
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+export const getAuthToken = (): string | null => {
+  if (!isBrowser) return null
+  const storedUser = getStoredUser()
+  if (storedUser?.token) {
+    return storedUser.token
+  }
+  return window.localStorage.getItem('authToken')
+}
+
+const authHeaders = (headers: Record<string, string> = {}) => {
+  const token = getAuthToken()
+  if (token) {
+    return {
+      ...headers,
+      Authorization: `Bearer ${token}`,
+    }
+  }
+  return headers
+}
+
 // Agora
 export async function getRtcToken(params: { channel: string; uid?: string | number; role?: 'publisher' | 'subscriber'; expireSeconds?: number }): Promise<{ token: string; uid: string | number }>{
   const res = await fetch(`${API_BASE}/token`, {
@@ -84,13 +117,12 @@ export async function getPosts(roomId?: string): Promise<ApiPost[]> {
   return res.json()
 }
 
-export async function deletePost(postId: string, userId: string) {
+export async function deletePost(postId: string) {
   const res = await fetch(`${API_BASE}/posts/${postId}`, {
     method: "DELETE",
-    headers: {
+    headers: authHeaders({
       "Content-Type": "application/json",
-      "x-user-id": userId,
-    },
+    }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'unknown' }))
@@ -102,7 +134,6 @@ export async function deletePost(postId: string, userId: string) {
 export async function createPost(data: { 
   title: string
   content: string
-  authorId: string
   roomId: string
   category: string
   duration: string
@@ -110,7 +141,7 @@ export async function createPost(data: {
 }) {
   const res = await fetch(`${API_BASE}/posts`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error("Failed to create post")
@@ -120,9 +151,10 @@ export async function createPost(data: {
 export type ApiUser = { 
   id: string; 
   name: string; 
-  email: string; 
+  email: string | null; 
   alias?: string | null; 
   anonymousId?: string | null; 
+  token?: string;
 }
 
 export async function getUsers(): Promise<ApiUser[]> {
@@ -201,7 +233,7 @@ export async function logoutUser(userId: string): Promise<{ message: string; isD
   
   const res = await fetch(`${API_BASE}/users/logout`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ userId }),
   })
   
@@ -240,7 +272,7 @@ export async function createRoom(data: {
 }): Promise<ApiRoom> {
   const res = await fetch(`${API_BASE}/rooms`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   })
   if (!res.ok) {
@@ -251,21 +283,21 @@ export async function createRoom(data: {
 }
 
 // Reactions API
-export async function addReaction(postId: string, userId: string, reactionType: 'tea' | 'spicy' | 'cap' | 'hearts') {
+export async function addReaction(postId: string, reactionType: 'tea' | 'spicy' | 'cap' | 'hearts') {
   const res = await fetch(`${API_BASE}/reactions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ postId, userId, reactionType }),
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ postId, reactionType }),
   })
   if (!res.ok) throw new Error("Failed to add reaction")
   return res.json()
 }
 
-export async function removeReaction(postId: string, userId: string, reactionType: 'tea' | 'spicy' | 'cap' | 'hearts') {
+export async function removeReaction(postId: string, reactionType: 'tea' | 'spicy' | 'cap' | 'hearts') {
   const res = await fetch(`${API_BASE}/reactions`, {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ postId, userId, reactionType }),
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ postId, reactionType }),
   })
   if (!res.ok) throw new Error("Failed to remove reaction")
   return res.json()
@@ -273,7 +305,9 @@ export async function removeReaction(postId: string, userId: string, reactionTyp
 
 export async function getPostReactions(postId: string, userId?: string): Promise<{ reactions: ApiReaction; totalReactions: number; userReaction?: { reactionType: string; createdAt: string } }> {
   const url = userId ? `${API_BASE}/reactions/${postId}?userId=${userId}` : `${API_BASE}/reactions/${postId}`
-  const res = await fetch(url)
+  const res = await fetch(url, {
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error("Failed to fetch reactions")
   return res.json()
 }
@@ -293,7 +327,9 @@ export async function getUserStats(userId: string): Promise<{
   streak: number
   averageReactions: number
 }> {
-  const res = await fetch(`${API_BASE}/users/${userId}/stats`)
+  const res = await fetch(`${API_BASE}/users/${userId}/stats`, {
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error("Failed to fetch user stats")
   return res.json()
 }
@@ -317,7 +353,9 @@ export type ApiBadge = {
 }
 
 export async function getUserBadges(userId: string): Promise<ApiBadge[]> {
-  const res = await fetch(`${API_BASE}/badges/${userId}`)
+  const res = await fetch(`${API_BASE}/badges/${userId}`, {
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error("Failed to fetch user badges")
   return res.json()
 }
@@ -325,7 +363,7 @@ export async function getUserBadges(userId: string): Promise<ApiBadge[]> {
 export async function checkAndAwardBadges(userId: string): Promise<{ newBadges: ApiBadge[]; totalNew: number }> {
   const res = await fetch(`${API_BASE}/badges/${userId}/check`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
   })
   if (!res.ok) throw new Error("Failed to check badges")
   return res.json()
@@ -353,13 +391,12 @@ export async function getPostComments(postId: string): Promise<ApiComment[]> {
 
 export async function createComment(data: {
   postId: string
-  authorId: string
   content: string
   parentCommentId?: string
 }): Promise<ApiComment> {
   const res = await fetch(`${API_BASE}/comments`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   })
   if (!res.ok) {
@@ -369,11 +406,10 @@ export async function createComment(data: {
   return res.json()
 }
 
-export async function deleteComment(commentId: string, userId: string): Promise<{ message: string }> {
+export async function deleteComment(commentId: string): Promise<{ message: string }> {
   const res = await fetch(`${API_BASE}/comments/${commentId}`, {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId }),
+    headers: authHeaders({ "Content-Type": "application/json" }),
   })
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}))
@@ -440,13 +476,17 @@ export type ApiChatMessage = {
 
 // Chat API Functions
 export async function getUserChats(userId: string): Promise<ApiChat[]> {
-  const res = await fetch(`${API_BASE}/chats/user/${userId}`)
+  const res = await fetch(`${API_BASE}/chats/user/${userId}`, {
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error("Failed to fetch user chats")
   return res.json()
 }
 
 export async function getChat(userId1: string, userId2: string): Promise<ApiChat> {
-  const res = await fetch(`${API_BASE}/chats/between/${userId1}/${userId2}`)
+  const res = await fetch(`${API_BASE}/chats/between/${userId1}/${userId2}`, {
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error("Failed to fetch chat")
   return res.json()
 }
@@ -459,7 +499,7 @@ export async function sendMessage(data: {
 }): Promise<{ message: string; chat: ApiChat }> {
   const res = await fetch(`${API_BASE}/chats/send`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   })
   if (!res.ok) {
@@ -476,7 +516,7 @@ export async function markMessagesAsRead(data: {
 }): Promise<{ message: string }> {
   const res = await fetch(`${API_BASE}/chats/mark-read`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   })
   if (!res.ok) {
@@ -493,7 +533,7 @@ export async function deleteMessage(data: {
 }): Promise<{ message: string }> {
   const res = await fetch(`${API_BASE}/chats/message`, {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(data),
   })
   if (!res.ok) {
@@ -504,13 +544,17 @@ export async function deleteMessage(data: {
 }
 
 export async function getUnreadCount(userId: string): Promise<{ unreadCount: number }> {
-  const res = await fetch(`${API_BASE}/chats/unread/${userId}`)
+  const res = await fetch(`${API_BASE}/chats/unread/${userId}`, {
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error("Failed to fetch unread count")
   return res.json()
 }
 
 export async function searchUsers(query: string): Promise<ApiUser[]> {
-  const res = await fetch(`${API_BASE}/chats/search-users?query=${encodeURIComponent(query)}`)
+  const res = await fetch(`${API_BASE}/chats/search-users?query=${encodeURIComponent(query)}`, {
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error("Failed to search users")
   return res.json()
 }

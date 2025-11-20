@@ -71,11 +71,13 @@ export default function Feed() {
       } catch (error) {
         console.error('Error parsing user data:', error)
         localStorage.removeItem('user')
+        localStorage.removeItem('authToken')
         // Redirect to auth (this shouldn't happen in ProtectedRoute, but just in case)
         window.location.href = '/auth'
       }
     } else {
       // This shouldn't happen in ProtectedRoute, but just in case
+      localStorage.removeItem('authToken')
       window.location.href = '/auth'
     }
   }, [])
@@ -107,8 +109,8 @@ export default function Feed() {
       // Load reactions for each post and user's reactions
       for (const apiPost of apiPosts) {
         try {
-          const userId = currentUser?.id || "demo-user-id"
-          const reactionData = await getPostReactions(apiPost.id, currentUser ? userId : undefined)
+          const userId = currentUser?.id
+          const reactionData = await getPostReactions(apiPost.id, userId)
           
           // Update post reactions
           setPosts(prevPosts => prevPosts.map(post => 
@@ -147,7 +149,6 @@ export default function Feed() {
     }
 
     try {
-      const userId = currentUser.id || "demo-user-id"
       const currentReaction = userReactions[postId]
       
       console.log(`🔵 [FEED] Handling reaction: ${type} for post ${postId}`)
@@ -156,7 +157,7 @@ export default function Feed() {
       // If user already has this reaction, remove it
       if (currentReaction === type) {
         console.log(`🟡 [FEED] Removing existing reaction: ${type}`)
-        await removeReaction(postId, userId, type)
+        await removeReaction(postId, type)
         
         // Update local state
         setUserReactions(prev => {
@@ -178,7 +179,7 @@ export default function Feed() {
         }
         
         // Add new reaction (this will handle updating existing reaction on backend)
-        await addReaction(postId, userId, type)
+        await addReaction(postId, type)
         
         // Update local state
         setUserReactions(prev => {
@@ -189,7 +190,7 @@ export default function Feed() {
         
         // Reload reactions from server to get accurate counts
         try {
-          const reactionData = await getPostReactions(postId, currentUser ? userId : undefined)
+          const reactionData = await getPostReactions(postId, currentUser?.id)
           setPosts(prevPosts => prevPosts.map(post => 
             post.id === postId 
               ? { ...post, reactions: reactionData.reactions }
@@ -218,7 +219,7 @@ export default function Feed() {
       if (!currentUser) return
       const confirmed = window.confirm('Delete this post? This cannot be undone.')
       if (!confirmed) return
-      await apiDeletePost(postId, currentUser.id)
+      await apiDeletePost(postId)
       setPosts(prev => prev.filter(p => p.id !== postId))
     } catch (error) {
       console.error('Failed to delete post:', error)

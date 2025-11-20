@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { createPost, createUser, getUsers, getRooms } from "@/lib/api"
+import { createPost, getRooms } from "@/lib/api"
 import { ArrowLeft, Mic, Image, Clock, Globe, Calendar, Hash, Coffee } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,10 +26,30 @@ export default function Create() {
   const [postType, setPostType] = useState<"text" | "voice">("text")
   const [rooms, setRooms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const navigate = useNavigate()
   const { toast } = useToast()
 
-  // Load rooms on component mount
+  // Load current user and rooms on component mount
+  React.useEffect(() => {
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData)
+        if (parsed?.id) {
+          setCurrentUser(parsed)
+        } else {
+          navigate('/auth')
+        }
+      } catch (error) {
+        console.error('Failed to parse user data:', error)
+        navigate('/auth')
+      }
+    } else {
+      navigate('/auth')
+    }
+  }, [navigate])
+
   React.useEffect(() => {
     const loadRooms = async () => {
       try {
@@ -61,20 +81,6 @@ export default function Create() {
     }
 
     try {
-      // Determine author from session; create anonymous if missing
-      let authorId = localStorage.getItem('userId') || ''
-      if (!authorId) {
-        // Create anonymous user once and store id
-        const anon = await createUser({ 
-          name: "Anonymous", 
-          email: `anon_${Date.now()}@local`, 
-          password: "demo" 
-        })
-        authorId = anon.id
-        localStorage.setItem('userId', authorId)
-        localStorage.setItem('user', JSON.stringify(anon))
-      }
-
       // Find the selected room
       const selectedRoomData = rooms.find(room => room.id === selectedRoom)
       if (!selectedRoomData) {
@@ -85,7 +91,6 @@ export default function Create() {
       await createPost({
         title: `${selectedRoomData.name} - ${postType === 'voice' ? 'Voice Note' : 'Text Post'}`,
         content: content.trim(),
-        authorId,
         roomId: selectedRoom,
         category: selectedRoomData.name,
         duration: selectedDuration,

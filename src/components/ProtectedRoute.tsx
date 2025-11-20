@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
+  children: ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
@@ -15,14 +15,17 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     const checkAuth = () => {
       try {
         const userData = localStorage.getItem('user')
+        const storedToken = localStorage.getItem('authToken')
         if (userData) {
           const user = JSON.parse(userData)
-          if (user && user.id) {
+          const token = storedToken || user?.token
+          if (user && user.id && token) {
             console.log('🔵 [AUTH] User authenticated:', user.name || user.alias)
             setIsAuthenticated(true)
           } else {
             console.log('🔴 [AUTH] Invalid user data, redirecting to login')
             localStorage.removeItem('user')
+            localStorage.removeItem('authToken')
             // Store the current path to redirect back after login
             localStorage.setItem('redirectAfterLogin', location.pathname)
             navigate('/auth')
@@ -31,11 +34,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           console.log('🔴 [AUTH] No user data found, redirecting to login')
           // Store the current path to redirect back after login
           localStorage.setItem('redirectAfterLogin', location.pathname)
+          localStorage.removeItem('authToken')
           navigate('/auth')
         }
       } catch (error) {
         console.error('🔴 [AUTH] Error checking authentication:', error)
         localStorage.removeItem('user')
+        localStorage.removeItem('authToken')
         // Store the current path to redirect back after login
         localStorage.setItem('redirectAfterLogin', location.pathname)
         navigate('/auth')

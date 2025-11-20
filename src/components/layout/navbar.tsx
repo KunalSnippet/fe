@@ -23,6 +23,7 @@ export function Navbar() {
       } catch (error) {
         console.error('Error parsing user data:', error)
         localStorage.removeItem('user')
+        localStorage.removeItem('authToken')
       }
     }
   }, [])
@@ -36,6 +37,8 @@ export function Navbar() {
       
       // Clear user data from localStorage
       localStorage.removeItem('user')
+      localStorage.removeItem('authToken')
+      localStorage.removeItem('userId')
       setCurrentUser(null)
       
       toast({

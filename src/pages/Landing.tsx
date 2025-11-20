@@ -10,16 +10,18 @@ export default function Landing() {
   // Only redirect to feed if user is on the root path and authenticated
   useEffect(() => {
     const userData = localStorage.getItem('user')
+    const authToken = localStorage.getItem('authToken')
     if (userData && window.location.pathname === '/') {
       try {
         const user = JSON.parse(userData)
-        if (user && user.id) {
+        if (user && user.id && (user.token || authToken)) {
           console.log('🔵 [LANDING] User already authenticated, redirecting to feed')
           navigate('/feed')
         }
       } catch (error) {
         console.error('Error parsing user data:', error)
         localStorage.removeItem('user')
+        localStorage.removeItem('authToken')
       }
     }
   }, [navigate])
