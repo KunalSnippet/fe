@@ -221,10 +221,9 @@ export default function Profile() {
 
           {/* Main Content Tabs */}
           <Tabs defaultValue="badges" className="animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="badges">Badges</TabsTrigger>
               <TabsTrigger value="posts">My Posts</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
 
             <TabsContent value="badges" className="space-y-6">
@@ -347,47 +346,6 @@ export default function Profile() {
                   </Card>
                 ))
               )}
-            </TabsContent>
-
-            <TabsContent value="activity" className="space-y-6">
-              <Card className="tea-card">
-                <CardHeader>
-                  <CardTitle>Weekly Activity</CardTitle>
-                  <CardDescription>Your tea-spilling patterns</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Most Active Time</span>
-                      <span className="text-sm font-medium">9-11 PM</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Favorite Room</span>
-                      <span className="text-sm font-medium">{stats.topCategory}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Average Reactions per Post</span>
-                      <span className="text-sm font-medium">{stats.averageReactions}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Reply Rate</span>
-                      <span className="text-sm font-medium">68%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="tea-card gradient-hero text-white">
-                <CardContent className="p-6 text-center">
-                  <h3 className="text-xl font-semibold mb-2">Keep the Tea Flowing!</h3>
-                  <p className="text-white/90 mb-4">
-                    You're doing great! Your posts generate {stats.averageReactions} average reactions.
-                  </p>
-                  <Button variant="secondary" className="hover-scale shadow-soft">
-                    Spill More Tea
-                  </Button>
-                </CardContent>
-              </Card>
             </TabsContent>
           </Tabs>
         </div>

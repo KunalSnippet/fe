@@ -1,13 +1,12 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { createPost, getRooms } from "@/lib/api"
-import { ArrowLeft, Mic, Image, Clock, Globe, Calendar, Hash, Coffee } from "lucide-react"
+import { ArrowLeft, Image, Clock, Globe, Calendar, Hash, Coffee } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 
 // Categories will be loaded from the API
@@ -22,8 +21,6 @@ export default function Create() {
   const [content, setContent] = useState("")
   const [selectedRoom, setSelectedRoom] = useState("")
   const [selectedDuration, setSelectedDuration] = useState("24h")
-  const [isRecording, setIsRecording] = useState(false)
-  const [postType, setPostType] = useState<"text" | "voice">("text")
   const [rooms, setRooms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -89,12 +86,12 @@ export default function Create() {
 
       // Create the post
       await createPost({
-        title: `${selectedRoomData.name} - ${postType === 'voice' ? 'Voice Note' : 'Text Post'}`,
+        title: `${selectedRoomData.name} - Text Post`,
         content: content.trim(),
         roomId: selectedRoom,
         category: selectedRoomData.name,
         duration: selectedDuration,
-        isVoiceNote: postType === 'voice'
+        isVoiceNote: false
       })
 
       toast({
@@ -113,21 +110,6 @@ export default function Create() {
     }
   }
 
-  const toggleRecording = () => {
-    setIsRecording(!isRecording)
-    if (!isRecording) {
-      toast({
-        title: "Recording Started",
-        description: "Spill your tea! Tap again when you're done.",
-      })
-    } else {
-      setContent("Voice note recorded (1:23)")
-      toast({
-        title: "Recording Saved",
-        description: "Your voice note is ready to be spilled!",
-      })
-    }
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,65 +131,23 @@ export default function Create() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Post Type Selection */}
+          {/* Post Content */}
           <Card className="tea-card animate-slide-in-right">
             <CardHeader>
               <CardTitle className="text-lg">What's brewing?</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs value={postType} onValueChange={(value) => setPostType(value as "text" | "voice")}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="text" className="flex items-center space-x-2">
-                    <Hash className="h-4 w-4" />
-                    <span>Text Post</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="voice" className="flex items-center space-x-2">
-                    <Mic className="h-4 w-4" />
-                    <span>Voice Note</span>
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="text" className="mt-4">
-                  <Textarea
-                    placeholder="Spill your tea here... What's the latest gossip, hot take, or review you're dying to share anonymously?"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="min-h-[120px] resize-none"
-                    maxLength={500}
-                  />
-                  <div className="flex justify-between items-center mt-2 text-sm text-muted-foreground">
-                    <span>Be spicy, but stay respectful ✨</span>
-                    <span>{content.length}/500</span>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="voice" className="mt-4">
-                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-border rounded-lg">
-                    <Button
-                      type="button"
-                      onClick={toggleRecording}
-                      className={`w-20 h-20 rounded-full ${
-                        isRecording 
-                          ? "bg-destructive hover:bg-destructive/90 animate-pulse-glow" 
-                          : "gradient-primary hover-glow"
-                      } transition-smooth`}
-                    >
-                      <Mic className={`h-8 w-8 ${isRecording ? "text-white" : "text-primary-foreground"}`} />
-                    </Button>
-                    <p className="mt-4 text-center text-muted-foreground">
-                      {isRecording ? "Recording... Tap to stop" : "Tap to start recording"}
-                    </p>
-                    {content.includes("Voice note") && (
-                      <div className="mt-4 p-3 bg-muted rounded-lg flex items-center space-x-2">
-                        <div className="w-6 h-6 gradient-accent rounded-full flex items-center justify-center">
-                          <div className="w-3 h-3 bg-white rounded-full" />
-                        </div>
-                        <span className="text-sm">Voice note ready (1:23)</span>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <Textarea
+                placeholder="Spill your tea here... What's the latest gossip, hot take, or review you're dying to share anonymously?"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="min-h-[120px] resize-none"
+                maxLength={500}
+              />
+              <div className="flex justify-between items-center mt-2 text-sm text-muted-foreground">
+                <span>Be spicy, but stay respectful ✨</span>
+                <span>{content.length}/500</span>
+              </div>
             </CardContent>
           </Card>
 
@@ -305,7 +245,6 @@ export default function Create() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Be specific but protect identities - no real names!</li>
               <li>• Spicy takes get more engagement than mild ones</li>
-              <li>• Voice notes feel more authentic and personal</li>
               <li>• Campus Tea and Celeb Gossip rooms are most active</li>
             </ul>
           </CardContent>

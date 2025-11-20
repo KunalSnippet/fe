@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { Heart, MessageCircle, Share2, MoreHorizontal, Clock, Flame, Coffee, Flag, Trash2 } from "lucide-react"
+import { Heart, MessageCircle, MoreHorizontal, Clock, Flame, Coffee, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -401,12 +401,6 @@ export default function Feed() {
                           isOpen={openComments[post.id] || false}
                           onToggle={() => toggleComments(post.id)}
                         />
-                        <Button variant="ghost" size="sm" className="hover-scale">
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="hover-scale">
-                          <Flag className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
                   </div>
