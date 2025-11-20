@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useChat } from '../contexts/ChatContext';
-import { getUserChats, searchUsers, getChat, ApiChat, ApiUser } from '../lib/api';
+import { getUserChats, searchUsers, ApiChat, ApiUser } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -22,7 +22,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
   const [searchResults, setSearchResults] = useState<ApiUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeChatLoading, setActiveChatLoading] = useState(false);
 
   useEffect(() => {
     loadChats();
@@ -58,45 +57,26 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
     }
   };
 
-  const startNewChat = async (user: ApiUser) => {
-    try {
-      setActiveChatLoading(true);
-      const resolvedUserId = userId || localStorage.getItem('userId') || '';
-      if (!resolvedUserId) return;
-      const fullChat = await getChat(resolvedUserId, user.id);
-      setCurrentChat(fullChat);
-      await loadChats();
-    } catch (error) {
-      console.error('Failed to start chat:', error);
-    } finally {
-      setActiveChatLoading(false);
-      setSearchQuery('');
-      setSearchResults([]);
-    }
+  const startNewChat = (user: ApiUser) => {
+    // Create a new chat object for the UI
+    const newChat: ApiChat = {
+      _id: `temp-${Date.now()}`,
+      participants: [
+        { _id: userId, name: 'You', email: '', alias: '' },
+        { _id: user.id, name: user.name, email: user.email, alias: user.alias }
+      ],
+      messages: [],
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setCurrentChat(newChat);
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
   const getOtherParticipant = (chat: ApiChat) => {
     return chat.participants.find(p => p._id !== userId);
-  };
-
-  const handleSelectChat = async (chat: ApiChat) => {
-    const otherUser = getOtherParticipant(chat);
-    if (!otherUser) return;
-
-    // Optimistic update so UI responds immediately
-    setCurrentChat(chat);
-    const resolvedUserId = userId || localStorage.getItem('userId') || '';
-    if (!resolvedUserId) return;
-
-    try {
-      setActiveChatLoading(true);
-      const fullChat = await getChat(resolvedUserId, otherUser._id);
-      setCurrentChat(fullChat);
-    } catch (error) {
-      console.error('Failed to fetch chat details:', error);
-    } finally {
-      setActiveChatLoading(false);
-    }
   };
 
   const isUserOnline = (userId: string) => {
@@ -199,7 +179,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
                       ? 'bg-primary/10 border-primary/20 shadow-glow' 
                       : 'hover:bg-muted'
                   }`}
-                  onClick={() => handleSelectChat(chat)}
+                  onClick={() => setCurrentChat(chat)}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -242,7 +222,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
         {/* Chat Area */}
         <div className="flex-1 flex flex-col">
           {currentChat ? (
-            <ChatWindow chat={currentChat} userId={userId} isLoading={activeChatLoading} />
+            <ChatWindow chat={currentChat} userId={userId} />
           ) : (
             <div className="flex-1 flex items-center justify-center bg-background">
               <div className="text-center">
@@ -262,10 +242,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
 interface ChatWindowProps {
   chat: ApiChat;
   userId: string;
-  isLoading?: boolean;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId, isLoading = false }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId }) => {
   const { sendMessage, markAsRead, startTyping, stopTyping, typingUsers, onlineUsers } = useChat();
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -325,14 +304,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId, isLoading = false
     }
   };
 
-  const getSenderId = (msg: ApiChat['messages'][number]) => {
-    const sender = msg.sender as unknown;
-    if (sender && typeof sender === 'object' && '_id' in (sender as Record<string, unknown>)) {
-      return (sender as { _id: string })._id;
-    }
-    return typeof sender === 'string' ? sender : '';
-  };
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -352,7 +323,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId, isLoading = false
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4 bg-background relative">
+      <ScrollArea className="flex-1 p-4 bg-background">
         <div className="space-y-4">
           {chat.messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
@@ -362,11 +333,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId, isLoading = false
             </div>
           ) : (
             chat.messages.map((msg) => {
-              const isOwn = getSenderId(msg) === userId;
+              const isOwn = msg.sender._id === userId;
               return (
                 <div
                   key={msg._id}
-                  className={`flex w-full ${isOwn ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
                     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-smooth hover-lift ${
@@ -403,23 +374,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId, isLoading = false
             </div>
           )}
         </div>
-        {isLoading && (
-          <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-          </div>
-        )}
       </ScrollArea>
 
       {/* Message Input */}
       <div className="p-4 border-t border-border bg-card">
-        <div className="flex gap-2 items-center">
-          <Button 
-            onClick={handleSendMessage} 
-            disabled={!message.trim()}
-            className="gradient-primary text-primary-foreground shadow-glow hover-glow transition-smooth"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+        <div className="flex gap-2">
           <Input
             placeholder="Type a message..."
             value={message}
@@ -427,6 +386,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId, isLoading = false
             onKeyPress={handleKeyPress}
             className="flex-1 bg-background border-border focus:ring-primary"
           />
+          <Button 
+            onClick={handleSendMessage} 
+            disabled={!message.trim()}
+            className="gradient-primary text-primary-foreground shadow-glow hover-glow transition-smooth"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
