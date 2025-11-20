@@ -378,7 +378,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ chat, userId }) => {
 
       {/* Message Input */}
       <div className="p-4 border-t border-border bg-card">
-        <div className="flex gap-2">
+        <div className="flex gap-2 pr-20">
           <Input
             placeholder="Type a message..."
             value={message}
